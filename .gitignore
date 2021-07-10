@@ -1,0 +1,6 @@
+metals.sbt
+sbt.json
+target
+.bloop
+.metals
+.vscode
