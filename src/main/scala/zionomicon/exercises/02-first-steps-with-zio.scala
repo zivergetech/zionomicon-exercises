@@ -6,7 +6,7 @@ object FirstStepsWithZIO {
 
   /**
    * Implement a ZIO version of the function `readFile` by using the
-   * `ZIO.effect` constructor.
+   * `ZIO.attempt` constructor.
    */
   object Exercise1 {
 
@@ -23,7 +23,7 @@ object FirstStepsWithZIO {
 
   /**
    * Implement a ZIO version of the function `writeFile` by using the
-   * `ZIO.effect` constructor.
+   * `ZIO.attempt` constructor.
    */
   object Exercise2 {
 
@@ -62,8 +62,8 @@ object FirstStepsWithZIO {
    */
   object Exercise4 {
 
-    def printLine(line: String) = ZIO.effect(println(line))
-    val readLine                = ZIO.effect(scala.io.StdIn.readLine())
+    def printLine(line: String) = ZIO.attempt(println(line))
+    val readLine                = ZIO.attempt(scala.io.StdIn.readLine())
 
     printLine("What is your name?").flatMap { _ =>
       readLine.flatMap { name =>
@@ -78,9 +78,9 @@ object FirstStepsWithZIO {
    */
   object Exercise5 {
 
-    val random                  = ZIO.effect(scala.util.Random.nextInt(3) + 1)
-    def printLine(line: String) = ZIO.effect(println(line))
-    val readLine                = ZIO.effect(scala.io.StdIn.readLine())
+    val random                  = ZIO.attempt(scala.util.Random.nextInt(3) + 1)
+    def printLine(line: String) = ZIO.attempt(println(line))
+    val readLine                = ZIO.attempt(scala.io.StdIn.readLine())
 
     random.flatMap { int =>
       printLine("Guess a number from 1 to 3:").flatMap { _ =>
@@ -155,9 +155,8 @@ object FirstStepsWithZIO {
   /**
    * Using the following code as a foundation, write a ZIO application that
    * prints out the contents of whatever files are passed into the program as
-   * command-line arguments. You should use the functions `readFileZio` and
-   * `writeFileZio` that you developed in these exercises, as well as
-   * `ZIO.foreach`.
+   * command-line arguments. You should use the function `readFileZio` that you
+   * developed in these exercises, as well as `ZIO.foreach`.
    */
   object Exercise10 {
 
@@ -189,19 +188,19 @@ object FirstStepsWithZIO {
   }
 
   /**
-   * Using `ZIO.effectTotal`, convert the following procedural function into a
+   * Using `ZIO.succeed`, convert the following procedural function into a
    * ZIO function:
    */
   object Exercise13 {
 
-    def currentTime(): Long = System.currentTimeMillis()
+    def currentTime(): Long = java.lang.System.currentTimeMillis()
 
     lazy val currentTimeZIO: ZIO[Any, Nothing, Long] =
       ???
   }
 
   /**
-   * Using `ZIO.effectAsync`, convert the following asynchronous,
+   * Using `ZIO.async`, convert the following asynchronous,
    * callback-based function into a ZIO function:
    */
   object Exercise14 {
@@ -218,7 +217,7 @@ object FirstStepsWithZIO {
   }
 
   /**
-   * Using `ZIO.effectAsync`, convert the following asynchronous,
+   * Using `ZIO.async`, convert the following asynchronous,
    * callback-based function into a ZIO function:
    */
   object Exercise15 {
@@ -286,11 +285,9 @@ object FirstStepsWithZIO {
 
     import java.io.IOException
 
-    import zio.console._
-
     def readUntil(
       acceptInput: String => Boolean
-    ): ZIO[Console, IOException, String] =
+    ): ZIO[Has[Console], IOException, String] =
       ???
   }
 

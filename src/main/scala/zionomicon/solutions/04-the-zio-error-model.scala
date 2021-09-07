@@ -12,11 +12,11 @@ object TheZIOErrorModel {
   object Exercise1 {
 
     def failWithMessage(string: String): ZIO[Any, Throwable, Nothing] =
-      ZIO.effect(throw new Error(string))
+      ZIO.attempt(throw new Error(string))
   }
 
   /**
-   * Using the `ZIO#foldCauseM` operator and the `Cause#defects` method,
+   * Using the `ZIO#foldCauseZIO` operator and the `Cause#defects` method,
    * implement the following function. This function should take the effect,
    * inspect defects, and if a suitable defect is found, it should recover from
    * the error with the help of the specified function, which generates a new
@@ -27,17 +27,17 @@ object TheZIOErrorModel {
     def recoverFromSomeDefects[R, E, A](zio: ZIO[R, E, A])(
       f: Throwable => Option[A]
     ): ZIO[R, E, A] =
-      zio.foldCauseM(
+      zio.foldCauseZIO(
         cause =>
           cause.defects
             .collectFirst(Function.unlift(f))
-            .fold[ZIO[R, E, A]](ZIO.halt(cause))(a => ZIO.succeed(a)),
+            .fold[ZIO[R, E, A]](ZIO.failCause(cause))(a => ZIO.succeed(a)),
         a => ZIO.succeed(a)
       )
   }
 
   /**
-   * Using the `ZIO#foldCauseM` operator and the `Cause#prettyPrint` method,
+   * Using the `ZIO#foldCauseZIO` operator and the `Cause#prettyPrint` method,
    * implement an operator that takes an effect, and returns a new effect that
    * logs any failures of the original effect (including errors and defects),
    * without changing its failure or success value.
@@ -45,14 +45,14 @@ object TheZIOErrorModel {
   object Exercise3 {
 
     def logFailures[R, E, A](zio: ZIO[R, E, A]): ZIO[R, E, A] =
-      zio.foldCauseM(
-        cause => ZIO.succeed(println(cause.prettyPrint)) *> ZIO.halt(cause),
+      zio.foldCauseZIO(
+        cause => ZIO.succeed(println(cause.prettyPrint)) *> ZIO.failCause(cause),
         a => ZIO.succeed(a)
       )
   }
 
   /**
-   * Using the `ZIO#run` method, which "runs" an effect to an `Exit`
+   * Using the `ZIO#exit` method, which "runs" an effect to an `Exit`
    * value, implement the following function, which will execute the specified
    * effect on any failure at all:
    */
@@ -62,8 +62,8 @@ object TheZIOErrorModel {
       zio: ZIO[R, E, A],
       handler: ZIO[R, E, Any]
     ): ZIO[R, E, A] =
-      zio.run.flatMap {
-        case Exit.Failure(cause) => handler *> ZIO.halt(cause)
+      zio.exit.flatMap {
+        case Exit.Failure(cause) => handler *> ZIO.failCause(cause)
         case Exit.Success(a)     => ZIO.succeed(a)
       }
   }
@@ -87,11 +87,11 @@ object TheZIOErrorModel {
   object Exercise6 {
 
     val parseNumber: ZIO[Any, Throwable, Int] =
-      ZIO.effect("foo".toInt).refineToOrDie[NumberFormatException]
+      ZIO.attempt("foo".toInt).refineToOrDie[NumberFormatException]
   }
 
   /**
-   * Using the `ZIO#foldM` method, implement the following two functions, which
+   * Using the `ZIO#foldZIO` method, implement the following two functions, which
    * make working with `Either` values easier, by shifting the unexpected case
    * into the error channel (and reversing this shifting).
    */
@@ -100,7 +100,7 @@ object TheZIOErrorModel {
     def left[R, E, A, B](
       zio: ZIO[R, E, Either[A, B]]
     ): ZIO[R, Either[E, B], A] =
-      zio.foldM(
+      zio.foldZIO(
         e => ZIO.fail(Left(e)),
         _.fold(a => ZIO.succeed(a), b => ZIO.fail(Right(b)))
       )
@@ -108,14 +108,14 @@ object TheZIOErrorModel {
     def unleft[R, E, A, B](
       zio: ZIO[R, Either[E, B], A]
     ): ZIO[R, E, Either[A, B]] =
-      zio.foldM(
+      zio.foldZIO(
         _.fold(e => ZIO.fail(e), b => ZIO.succeed(Right(b))),
         a => ZIO.succeed(Left(a))
       )
   }
 
   /**
-   * Using the `ZIO#foldM` method, implement the following two functions, which
+   * Using the `ZIO#foldZIO` method, implement the following two functions, which
    * make working with `Either` values easier, by shifting the unexpected case
    * into the error channel (and reversing this shifting).
    */
@@ -124,7 +124,7 @@ object TheZIOErrorModel {
     def right[R, E, A, B](
       zio: ZIO[R, E, Either[A, B]]
     ): ZIO[R, Either[E, A], B] =
-      zio.foldM(
+      zio.foldZIO(
         e => ZIO.fail(Left(e)),
         _.fold(a => ZIO.fail(Right(a)), b => ZIO.succeed(b))
       )
@@ -132,7 +132,7 @@ object TheZIOErrorModel {
     def unright[R, E, A, B](
       zio: ZIO[R, Either[E, A], B]
     ): ZIO[R, E, Either[A, B]] =
-      zio.foldM(
+      zio.foldZIO(
         _.fold(e => ZIO.fail(e), a => ZIO.succeed(Left(a))),
         b => ZIO.succeed(Right(b))
       )
@@ -147,17 +147,17 @@ object TheZIOErrorModel {
       zio: ZIO[R, E1, A],
       handler: Cause[E1] => ZIO[R, E2, A]
     ): ZIO[R, E2, A] =
-      zio.sandbox.foldM(cause => handler(cause), a => ZIO.succeed(a))
+      zio.sandbox.foldZIO(cause => handler(cause), a => ZIO.succeed(a))
   }
 
   /**
-   * Using the `ZIO#foldCauseM` method, implement the following function.
+   * Using the `ZIO#foldCauseZIO` method, implement the following function.
    */
   object Exercise10 {
     def catchAllCause[R, E1, E2, A](
       zio: ZIO[R, E1, A],
       handler: Cause[E1] => ZIO[R, E2, A]
     ): ZIO[R, E2, A] =
-      zio.foldCauseM(cause => handler(cause), a => ZIO.succeed(a))
+      zio.foldCauseZIO(cause => handler(cause), a => ZIO.succeed(a))
   }
 }

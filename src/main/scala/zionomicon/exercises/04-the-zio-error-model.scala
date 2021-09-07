@@ -16,7 +16,7 @@ object TheZIOErrorModel {
   }
 
   /**
-   * Using the `ZIO#foldCauseM` operator and the `Cause#defects` method,
+   * Using the `ZIO#foldCauseZIO` operator and the `Cause#defects` method,
    * implement the following function. This function should take the effect,
    * inspect defects, and if a suitable defect is found, it should recover from
    * the error with the help of the specified function, which generates a new
@@ -31,7 +31,7 @@ object TheZIOErrorModel {
   }
 
   /**
-   * Using the `ZIO#foldCauseM` operator and the `Cause#prettyPrint` method,
+   * Using the `ZIO#foldCauseZIO` operator and the `Cause#prettyPrint` method,
    * implement an operator that takes an effect, and returns a new effect that
    * logs any failures of the original effect (including errors and defects),
    * without changing its failure or success value.
@@ -43,7 +43,7 @@ object TheZIOErrorModel {
   }
 
   /**
-   * Using the `ZIO#run` method, which "runs" an effect to an `Exit`
+   * Using the `ZIO#exit` method, which "runs" an effect to an `Exit`
    * value, implement the following function, which will execute the specified
    * effect on any failure at all:
    */
@@ -75,11 +75,11 @@ object TheZIOErrorModel {
   object Exercise6 {
 
     val parseNumber: ZIO[Any, Throwable, Int] =
-      ZIO.effect("foo".toInt)
+      ZIO.attempt("foo".toInt)
   }
 
   /**
-   * Using the `ZIO#foldM` method, implement the following two functions, which
+   * Using the `ZIO#foldZIO` method, implement the following two functions, which
    * make working with `Either` values easier, by shifting the unexpected case
    * into the error channel (and reversing this shifting).
    */
@@ -97,7 +97,7 @@ object TheZIOErrorModel {
   }
 
   /**
-   * Using the `ZIO#foldM` method, implement the following two functions, which
+   * Using the `ZIO#foldZIO` method, implement the following two functions, which
    * make working with `Either` values easier, by shifting the unexpected case
    * into the error channel (and reversing this shifting).
    */
@@ -126,7 +126,7 @@ object TheZIOErrorModel {
   }
 
   /**
-   * Using the `ZIO#foldCauseM` method, implement the following function.
+   * Using the `ZIO#foldCauseZIO` method, implement the following function.
    */
   object Exercise10 {
     def catchAllCause[R, E1, E2, A](
