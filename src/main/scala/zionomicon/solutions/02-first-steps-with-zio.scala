@@ -172,12 +172,16 @@ object FirstStepsWithZIO {
     import Exercise1._
     import Exercise5._
 
-    object Cat extends App {
-      def run(commandLineArguments: List[String]) =
-        cat(commandLineArguments).exitCode
+    object Cat extends ZIOAppDefault {
+      
+      val run =
+        for {
+          args <- ZIOAppArgs.getArgs
+          _    <- cat(args)
+        } yield Unit
 
-      def cat(commandLineArguments: List[String]) =
-        ZIO.foreach(commandLineArguments) { file =>
+      def cat(files: Chunk[String]) =
+        ZIO.foreach(files) { file =>
           readFileZio(file).flatMap(printLine)
         }
     }
@@ -289,15 +293,13 @@ object FirstStepsWithZIO {
    */
   object Exercise17 {
 
-    object HelloHuman extends App {
-      def run(args: List[String]) =
-        helloHuman.exitCode
-
-      val helloHuman = for {
-        _    <- Console.printLine("What is your name?")
-        name <- Console.readLine
-        _    <- Console.printLine("Hello, " + name)
-      } yield ()
+    object HelloHuman extends ZIOAppDefault {
+      val run =
+        for {
+          _    <- Console.printLine("What is your name?")
+          name <- Console.readLine
+          _    <- Console.printLine("Hello, " + name)
+        } yield ()
     }
   }
 
@@ -308,11 +310,8 @@ object FirstStepsWithZIO {
    */
   object Exercise18 {
 
-    object NumberGuessing extends App {
-      def run(args: List[String]) =
-        numberGuesting.exitCode
-
-      val numberGuesting =
+    object NumberGuessing extends ZIOAppDefault {
+      val run =
         for {
           int <- Random.nextIntBounded(2).map(_ + 1)
           _   <- Console.printLine("Guess a number from 1 to 3:")
@@ -334,7 +333,7 @@ object FirstStepsWithZIO {
 
     def readUntil(
       acceptInput: String => Boolean
-    ): ZIO[Has[Console], IOException, String] =
+    ): ZIO[Console, IOException, String] =
       Console.readLine.flatMap { input =>
         if (acceptInput(input)) ZIO.succeed(input)
         else readUntil(acceptInput)

@@ -160,8 +160,17 @@ object FirstStepsWithZIO {
    */
   object Exercise10 {
 
-    object Cat extends App {
-      def run(commandLineArguments: List[String]) =
+    import java.io.IOException
+
+    object Cat extends ZIOAppDefault {
+      
+      val run =
+        for {
+          args <- ZIOAppArgs.getArgs
+          _    <- cat(args)
+        } yield ()
+
+      def cat(files: Chunk[String]): ZIO[Any, IOException, Unit] =
         ???
     }
   }
@@ -257,8 +266,8 @@ object FirstStepsWithZIO {
    */
   object Exercise17 {
 
-    object HelloHuman extends App {
-      def run(args: List[String]) =
+    object HelloHuman extends ZIOAppDefault {
+      val run =
         ???
     }
   }
@@ -270,8 +279,8 @@ object FirstStepsWithZIO {
    */
   object Exercise18 {
 
-    object NumberGuessing extends App {
-      def run(args: List[String]) =
+    object NumberGuessing extends ZIOAppDefault {
+      val run =
         ???
     }
   }
@@ -287,7 +296,7 @@ object FirstStepsWithZIO {
 
     def readUntil(
       acceptInput: String => Boolean
-    ): ZIO[Has[Console], IOException, String] =
+    ): ZIO[Console, IOException, String] =
       ???
   }
 
